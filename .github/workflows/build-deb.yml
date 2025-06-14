@@ -32,37 +32,36 @@ jobs:
       - name: Build desktop release JAR
         run: ./gradlew desktop:release
 
-      - name: Ensure jpackage setup in build.gradle
+      - name: Ensure jpackage plugin in build.gradle
         run: |
           if ! grep -q 'org.beryx.runtime' build.gradle; then
-            echo "Agregando plugin badass-runtime a build.gradle..."
-            cat <<'EOF' >> build.gradle
-plugins {
-    id 'org.beryx.runtime' version '1.14.4'
-}
-runtime {
-    jpackage {
-        imageName = 'ShatteredPixelDungeon'
-        skipInstaller = false
-        installerType = 'deb'
-        installerOptions = [
-            '--linux-shortcut',
-            '--linux-package-name', 'shattered-pixel-dungeon'
-        ]
-    }
-}
-EOF
+            echo "" >> build.gradle
+            echo "// Added by GitHub Actions for jpackage" >> build.gradle
+            echo "plugins {" >> build.gradle
+            echo "    id 'org.beryx.runtime' version '1.14.4'" >> build.gradle
+            echo "}" >> build.gradle
+            echo "runtime {" >> build.gradle
+            echo "    jpackage {" >> build.gradle
+            echo "        imageName = 'ShatteredPixelDungeon'" >> build.gradle
+            echo "        skipInstaller = false" >> build.gradle
+            echo "        installerType = 'deb'" >> build.gradle
+            echo "        installerOptions = [" >> build.gradle
+            echo "            '--linux-shortcut'," >> build.gradle
+            echo "            '--linux-package-name', 'shattered-pixel-dungeon'" >> build.gradle
+            echo "        ]" >> build.gradle
+            echo "    }" >> build.gradle
+            echo "}" >> build.gradle
           fi
 
       - name: Ensure mainClass in desktop/build.gradle
         run: |
           if [ -f desktop/build.gradle ]; then
             if ! grep -q 'mainClass' desktop/build.gradle; then
-              cat <<'EOF' >> desktop/build.gradle
-application {
-    mainClass = 'com.shatteredpixel.shatteredpixeldungeon.desktop.DesktopLauncher'
-}
-EOF
+              echo "" >> desktop/build.gradle
+              echo "// Added by GitHub Actions for mainClass" >> desktop/build.gradle
+              echo "application {" >> desktop/build.gradle
+              echo "    mainClass = 'com.shatteredpixel.shatteredpixeldungeon.desktop.DesktopLauncher'" >> desktop/build.gradle
+              echo "}" >> desktop/build.gradle
             fi
           fi
 
