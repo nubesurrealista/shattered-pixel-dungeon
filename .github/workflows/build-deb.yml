@@ -35,7 +35,9 @@ jobs:
       - name: Ensure jpackage setup in build.gradle
         run: |
           if ! grep -q 'org.beryx.runtime' build.gradle; then
-            echo "
+            echo "Agregando plugin badass-runtime a build.gradle..."
+            cat <<'EOF' >> build.gradle
+
 plugins {
     id 'org.beryx.runtime' version '1.14.4'
 }
@@ -50,7 +52,7 @@ runtime {
         ]
     }
 }
-" >> build.gradle
+EOF
           fi
 
       - name: Ensure mainClass in desktop/build.gradle
