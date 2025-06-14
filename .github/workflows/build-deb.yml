@@ -1,0 +1,82 @@
+name: Build Linux .deb Package
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [master, main]
+
+jobs:
+  build-linux-deb:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libasound2-dev libx11-dev libxext-dev libxrender-dev \
+            libxtst-dev libxt-dev libcups2-dev libfreetype6-dev libfontconfig1-dev \
+            ca-certificates wget unzip zip build-essential fakeroot
+
+      - name: Make gradlew executable
+        run: chmod +x ./gradlew
+
+      - name: Build desktop release JAR
+        run: ./gradlew desktop:release
+
+      - name: Ensure jpackage setup in build.gradle
+        run: |
+          if ! grep -q 'org.beryx.runtime' build.gradle; then
+            echo "
+plugins {
+    id 'org.beryx.runtime' version '1.14.4'
+}
+runtime {
+    jpackage {
+        imageName = 'ShatteredPixelDungeon'
+        skipInstaller = false
+        installerType = 'deb'
+        installerOptions = [
+            '--linux-shortcut',
+            '--linux-package-name', 'shattered-pixel-dungeon'
+        ]
+    }
+}
+" >> build.gradle
+          fi
+
+      - name: Ensure mainClass in desktop/build.gradle
+        run: |
+          if [ -f desktop/build.gradle ]; then
+            if ! grep -q 'mainClass' desktop/build.gradle; then
+              echo "
+application {
+    mainClass = 'com.shatteredpixel.shatteredpixeldungeon.desktop.DesktopLauncher'
+}
+" >> desktop/build.gradle
+            fi
+          fi
+
+      - name: Run jpackage image (build .deb)
+        run: ./gradlew desktop:jpackage
+
+      - name: Find generated .deb
+        id: finddeb
+        run: |
+          DEB=$(find . -name "*.deb" | head -n1)
+          echo "deb_path=$DEB" >> $GITHUB_OUTPUT
+
+      - name: Create Release and Upload .deb
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ${{ steps.finddeb.outputs.deb_path }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
