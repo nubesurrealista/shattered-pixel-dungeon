@@ -37,7 +37,6 @@ jobs:
           if ! grep -q 'org.beryx.runtime' build.gradle; then
             echo "Agregando plugin badass-runtime a build.gradle..."
             cat <<'EOF' >> build.gradle
-
 plugins {
     id 'org.beryx.runtime' version '1.14.4'
 }
@@ -59,11 +58,11 @@ EOF
         run: |
           if [ -f desktop/build.gradle ]; then
             if ! grep -q 'mainClass' desktop/build.gradle; then
-              echo "
+              cat <<'EOF' >> desktop/build.gradle
 application {
     mainClass = 'com.shatteredpixel.shatteredpixeldungeon.desktop.DesktopLauncher'
 }
-" >> desktop/build.gradle
+EOF
             fi
           fi
 
